@@ -12,6 +12,7 @@
     "istream": "cpp",
     "limits": "cpp",
     "ostream": "cpp",
-    "sstream": "cpp"
+    "sstream": "cpp",
+    "algorithm": "cpp"
   }
 }

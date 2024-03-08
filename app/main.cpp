@@ -12,6 +12,11 @@
 #include <sstream>
 
 #include <Shader.hpp>
+#include <VertexBuffer.hpp>
+#include <IndexBuffer.hpp>
+#include <VertexArray.hpp>
+#include <VertexBufferLayout.hpp>
+#include <Renderer.hpp>
 
 static void glfw_error_callback(int error, const char *description)
 {
@@ -95,16 +100,26 @@ int main()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
-    Shader shader("res/shader/basic.shader");
+    VertexArray va;
+    VertexBuffer vb(positions, sizeof(positions));
+    VertexBufferLayout layout;
+    layout.Push<float>(2);
+    va.AddBuffer(vb, layout);
+    IndexBuffer ib(indices, 6);
+    Shader shader("res/shader/uniform.shader");
     shader.Bind();
+    Renderer render;
     while (!glfwWindowShouldClose(window))
     {
+        render.Clear();
         glfwPollEvents();
         // Imgui Frame
         // ImGui_ImplOpenGL3_NewFrame();
         // ImGui_ImplGlfw_NewFrame();
         // ImGui::NewFrame();
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        // shader.Bind();
+        shader.SetUniform4f("u_Color", 1.0f, 1.0f, 1.0f, 1.0f);
+        render.Draw(va, ib, shader);
         // ImGui::Render();
         // int display_w, display_h;
         // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -118,7 +133,6 @@ int main()
         // }
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
-        glClear(GL_COLOR_BUFFER_BIT);
     }
 
     // ImGui_ImplOpenGL3_Shutdown();
