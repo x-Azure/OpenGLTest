@@ -1,0 +1,17 @@
+{
+  "files.associations": {
+    "unordered_map": "cpp",
+    "*.tcc": "cpp",
+    "cmath": "cpp",
+    "cstddef": "cpp",
+    "cstdint": "cpp",
+    "cstdio": "cpp",
+    "string": "cpp",
+    "fstream": "cpp",
+    "iostream": "cpp",
+    "istream": "cpp",
+    "limits": "cpp",
+    "ostream": "cpp",
+    "sstream": "cpp"
+  }
+}

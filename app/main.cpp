@@ -11,78 +11,8 @@
 #include <string>
 #include <sstream>
 
-struct ShaderProgramSource
-{
-    std::string VertexSource;
-    std::string FragmentSource;
-};
-static int CompileShader(unsigned int type, const std::string &source)
-{
-    unsigned int id = glCreateShader(type);
-    const char *src = source.c_str();
-    glShaderSource(id, 1, &src, nullptr);
-    glCompileShader(id);
-    int result;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-    if (result == GL_FALSE)
-    {
-        int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-        char *message = (char *)alloca(length * sizeof(char));
-        glGetShaderInfoLog(id, length, &length, message);
-        std::cout << "FAILED TO COMPILE " << (type == GL_VERTEX_SHADER ? "Vertex" : "Fragment") << " Shader" << std::endl;
-        std::cout << *message << std::endl;
-        glDeleteShader(id);
-        return 0;
-    }
+#include <Shader.hpp>
 
-    return id;
-}
-static unsigned int CreateShader(const std::string &vertexShader, const std::string &fragmentShader)
-{
-    unsigned int program = glCreateProgram();
-    unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
-    unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
-
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
-    glLinkProgram(program);
-    glValidateProgram(program);
-
-    glDeleteShader(vs);
-    glDeleteShader(fs);
-    return program;
-}
-static ShaderProgramSource parseShader(const std::string &filepath)
-{
-    enum class ShaderType
-    {
-        NONE = -1,
-        VERTEX = 0,
-        FRAGMENT = 1
-    };
-    ShaderType type = ShaderType::NONE;
-    std::ifstream stream(filepath);
-    if (stream.fail())
-        std::cout << "Shader Not Found \n";
-    std::string line;
-    std::stringstream ss[2];
-    while (getline(stream, line))
-    {
-        if (line.find("#shader") != std::string::npos)
-        {
-            if (line.find("vertex") != std::string::npos)
-                type = ShaderType::VERTEX;
-            else if (line.find("fragment") != std::string::npos)
-                type = ShaderType::FRAGMENT;
-        }
-        else
-        {
-            ss[(int)type] << line << '\n';
-        }
-    }
-    return {ss[0].str(), ss[1].str()};
-}
 static void glfw_error_callback(int error, const char *description)
 {
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
@@ -165,15 +95,8 @@ int main()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
-    ShaderProgramSource sources = parseShader("res/shader/colors.shader");
-    unsigned int shader = CreateShader(sources.VertexSource, sources.FragmentSource);
-    glUseProgram(shader);
-
-    int location = glGetUniformLocation(shader, "u_Colr");
-    if (location == -1)
-        std::cout << "Uniform Not Found" << std::endl;
-    glUniform4f(location, 0.2f, 0.3f, 0.8f, 1.0f);
-
+    Shader shader("res/shader/basic.shader");
+    shader.Bind();
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -201,7 +124,6 @@ int main()
     // ImGui_ImplOpenGL3_Shutdown();
     // ImGui_ImplGlfw_Shutdown();
     // ImGui::DestroyContext();
-    glDeleteProgram(shader);
     glfwDestroyWindow(window);
     glfwTerminate();
 }
