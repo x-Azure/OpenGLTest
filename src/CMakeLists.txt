@@ -1,0 +1,4 @@
+project(OpenGLTest)
+file(GLOB_RECURSE sources *.cpp)
+add_library(_${PROJECT_NAME} ${sources})
+target_include_directories(_${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../include")

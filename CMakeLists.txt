@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 3.5.0)
+project(OpenGLTest)
+set(OsBitness 32)
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+set(OsBitness 64)
+endif()
+set(OutputDir "${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${OutputDir}/static")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OutputDir}    ")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OutputDir}")
+
+find_package(glfw3 REQUIRED)
+find_package(GLEW REQUIRED)
+
+add_subdirectory(thirdparty)
+add_subdirectory(include)
+add_subdirectory(src)
+add_subdirectory(app)
