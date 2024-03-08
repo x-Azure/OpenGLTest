@@ -102,9 +102,9 @@ int main()
 
     const char *glsl_version = "#version 150";
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-    // glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    // glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     window = glfwCreateWindow(960, 540, "OpenGL 0.0", NULL, NULL);
 
@@ -117,7 +117,7 @@ int main()
     if (glewInit() != GLEW_OK)
         return -1;
     std::cout << glGetString(GL_VERSION) << std::endl;
-
+    glfwSwapInterval(1);
     // Enable debug output
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(DebugCallback, 0);
@@ -142,20 +142,38 @@ int main()
     ///////////////////////////////////////////////////
     float positions[] = {
         -0.5f, -0.5f,
-        0.0f, 0.5f,
-        0.5f, -0.5f};
+        0.5f, -0.5f,
+        0.5f, 0.5f,
+        -0.5f, 0.5f};
     unsigned int indices[] = {
         0, 1, 2,
         2, 3, 0};
+
+    unsigned int vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
     unsigned int buffer;
     glGenBuffers(1, &buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), positions, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
-    ShaderProgramSource sources = parseShader("res/shader/basic1.shader");
+
+    unsigned int ibo;
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+
+    ShaderProgramSource sources = parseShader("res/shader/colors.shader");
     unsigned int shader = CreateShader(sources.VertexSource, sources.FragmentSource);
     glUseProgram(shader);
+
+    int location = glGetUniformLocation(shader, "u_Colr");
+    if (location == -1)
+        std::cout << "Uniform Not Found" << std::endl;
+    glUniform4f(location, 0.2f, 0.3f, 0.8f, 1.0f);
+
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -163,7 +181,7 @@ int main()
         // ImGui_ImplOpenGL3_NewFrame();
         // ImGui_ImplGlfw_NewFrame();
         // ImGui::NewFrame();
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
         // ImGui::Render();
         // int display_w, display_h;
         // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
