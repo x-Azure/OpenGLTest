@@ -5,6 +5,8 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -17,6 +19,7 @@
 #include <VertexArray.hpp>
 #include <VertexBufferLayout.hpp>
 #include <Renderer.hpp>
+#include <Textures.hpp>
 
 static void glfw_error_callback(int error, const char *description)
 {
@@ -76,10 +79,10 @@ int main()
     ///////////////////////////////////////////////////
     ///////////////////////////////////////////////////
     float positions[] = {
-        -0.5f, -0.5f,
-        0.5f, -0.5f,
-        0.5f, 0.5f,
-        -0.5f, 0.5f};
+        100.0f, 100.0f, 0.0f, 0.0f,
+        200.0f, 100.0f, 1.0f, 0.0f,
+        200.0f, 200.0f, 1.0f, 1.0f,
+        100.0f, 200.0f, 0.0f, 1.0f};
     unsigned int indices[] = {
         0, 1, 2,
         2, 3, 0};
@@ -104,11 +107,20 @@ int main()
     VertexBuffer vb(positions, sizeof(positions));
     VertexBufferLayout layout;
     layout.Push<float>(2);
+    layout.Push<float>(2);
     va.AddBuffer(vb, layout);
     IndexBuffer ib(indices, 6);
-    Shader shader("res/shader/uniform.shader");
+
+    glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
+
+    Shader shader("res/shader/texture.shader");
     shader.Bind();
+    shader.SetUniformMat4f("u_MVP", proj);
     Renderer render;
+    Texture texture("res/textures/tbate.png");
+    texture.Bind();
+    shader.Bind();
+    shader.SetUniform1i("u_Texture", 0);
     while (!glfwWindowShouldClose(window))
     {
         render.Clear();
@@ -118,7 +130,7 @@ int main()
         // ImGui_ImplGlfw_NewFrame();
         // ImGui::NewFrame();
         // shader.Bind();
-        shader.SetUniform4f("u_Color", 1.0f, 1.0f, 1.0f, 1.0f);
+        // shader.SetUniform4f("u_Color", 1.0f, 1.0f, 1.0f, 1.0f);
         render.Draw(va, ib, shader);
         // ImGui::Render();
         // int display_w, display_h;
