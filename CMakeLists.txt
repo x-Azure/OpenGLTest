@@ -7,7 +7,7 @@ endif()
 set(OutputDir "${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${OutputDir}/static")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OutputDir}    ")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OutputDir}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}")
 
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
