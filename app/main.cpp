@@ -63,26 +63,26 @@ int main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // IMGUI_CHECKVERSION();
-    // ImGui::CreateContext();
-    // ImGuiIO &io = ImGui::GetIO();
-    // (void)io;
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
-    // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
-    // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-    // ImGui::StyleColorsDark();
-    // ImGui_ImplGlfw_InitForOpenGL(window, true);
-    // ImGui_ImplOpenGL3_Init(glsl_version);
-    // bool show_demo_window = true;
-
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+    bool show_demo_window = true;
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     ///////////////////////////////////////////////////
     ///////////////////////////////////////////////////
     float positions[] = {
-        100.0f, 100.0f, 0.0f, 0.0f,
-        200.0f, 100.0f, 1.0f, 0.0f,
-        200.0f, 200.0f, 1.0f, 1.0f,
-        100.0f, 200.0f, 0.0f, 1.0f};
+        -155.0f, -219.25f, 0.0f, 0.0f,
+        155.0f, -219.25f, 1.0f, 0.0f,
+        155.0f, 219.55f, 1.0f, 1.0f,
+        -155.0f, 219.5f, 0.0f, 1.0f};
     unsigned int indices[] = {
         0, 1, 2,
         2, 3, 0};
@@ -111,14 +111,12 @@ int main()
     va.AddBuffer(vb, layout);
     IndexBuffer ib(indices, 6);
 
+    glm::vec3 transate(485, 230, 0);
+    glm::vec3 transate1(165, 230, 0);
     glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0, -100, 0));
-    glm::mat4 mvp = proj * view * model;
+    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 
     Shader shader("res/shader/texture.shader");
-    shader.Bind();
-    shader.SetUniformMat4f("u_MVP", mvp);
     Renderer render;
     Texture texture("res/textures/tbate.png");
     texture.Bind();
@@ -128,31 +126,46 @@ int main()
     {
         render.Clear();
         glfwPollEvents();
-        // Imgui Frame
-        // ImGui_ImplOpenGL3_NewFrame();
-        // ImGui_ImplGlfw_NewFrame();
-        // ImGui::NewFrame();
-        // shader.Bind();
-        // shader.SetUniform4f("u_Color", 1.0f, 1.0f, 1.0f, 1.0f);
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), transate);
+        glm::mat4 mvp = proj * view * model;
+        shader.Bind();
+        shader.SetUniformMat4f("u_MVP", mvp);
         render.Draw(va, ib, shader);
-        // ImGui::Render();
-        // int display_w, display_h;
-        // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        model = glm::translate(glm::mat4(1.0f), transate1);
+        mvp = proj * view * model;
+        shader.Bind();
+        shader.SetUniformMat4f("u_MVP", mvp);
+        render.Draw(va, ib, shader);
+        {
+            ImGui::Begin("Slider");
+            ImGui::SliderFloat3("Trans1", &transate.x, 0.0f, 960.0f);
+            ImGui::SliderFloat3("Trans2", &transate1.x, 0.0f, 960.0f);
+            ImGui::End();
+        }
+        ImGui::Render();
+        int display_w, display_h;
+        glfwGetFramebufferSize(window, &display_w, &display_h);
+        glViewport(0, 0, display_w, display_h);
+        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        // {
-        //     GLFWwindow *backup_current_context = glfwGetCurrentContext();
-        //     ImGui::UpdatePlatformWindows();
-        //     ImGui::RenderPlatformWindowsDefault();
-        //     glfwMakeContextCurrent(backup_current_context);
-        // }
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            GLFWwindow *backup_current_context = glfwGetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            glfwMakeContextCurrent(backup_current_context);
+        }
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
     }
 
-    // ImGui_ImplOpenGL3_Shutdown();
-    // ImGui_ImplGlfw_Shutdown();
-    // ImGui::DestroyContext();
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwDestroyWindow(window);
     glfwTerminate();
 }
