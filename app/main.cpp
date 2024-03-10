@@ -1,6 +1,5 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
 #include <stb/stb_image.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
@@ -13,13 +12,10 @@
 #include <string>
 #include <sstream>
 
-#include <Shader.hpp>
-#include <VertexBuffer.hpp>
-#include <IndexBuffer.hpp>
-#include <VertexArray.hpp>
-#include <VertexBufferLayout.hpp>
 #include <Renderer.hpp>
-#include <Textures.hpp>
+
+#include <tests/TestClearColor.hpp>
+#include <tests/Test2DObject.hpp>
 
 static void glfw_error_callback(int error, const char *description)
 {
@@ -74,82 +70,45 @@ int main()
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
-    bool show_demo_window = true;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    ///////////////////////////////////////////////////
-    ///////////////////////////////////////////////////
-    float positions[] = {
-        -155.0f, -219.25f, 0.0f, 0.0f,
-        155.0f, -219.25f, 1.0f, 0.0f,
-        155.0f, 219.55f, 1.0f, 1.0f,
-        -155.0f, 219.5f, 0.0f, 1.0f};
-    unsigned int indices[] = {
-        0, 1, 2,
-        2, 3, 0};
 
-    unsigned int vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    unsigned int buffer;
-    glGenBuffers(1, &buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), positions, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
-
-    unsigned int ibo;
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-
-    VertexArray va;
-    VertexBuffer vb(positions, sizeof(positions));
-    VertexBufferLayout layout;
-    layout.Push<float>(2);
-    layout.Push<float>(2);
-    va.AddBuffer(vb, layout);
-    IndexBuffer ib(indices, 6);
-
-    glm::vec3 transate(485, 230, 0);
-    glm::vec3 transate1(165, 230, 0);
+    glm::vec3 transate(0, 0, 0);
+    glm::vec3 transate1(0, 300, 0);
     glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
     glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 
-    Shader shader("res/shader/texture.shader");
     Renderer render;
-    Texture texture("res/textures/tbate.png");
-    texture.Bind();
-    shader.Bind();
-    shader.SetUniform1i("u_Texture", 0);
+
+    Tests::Test *currentTest = nullptr;
+    Tests::TestMenu *TestMenu = new Tests::TestMenu(currentTest);
+    currentTest = TestMenu;
+
+    TestMenu->RegisterTest<Tests::TestClearColor>("Clear Color");
+    TestMenu->RegisterTest<Tests::Test2DObject>("2D Obj");
+
     while (!glfwWindowShouldClose(window))
     {
-        render.Clear();
         glfwPollEvents();
+        render.Clear();
+
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), transate);
-        glm::mat4 mvp = proj * view * model;
-        shader.Bind();
-        shader.SetUniformMat4f("u_MVP", mvp);
-        render.Draw(va, ib, shader);
-        model = glm::translate(glm::mat4(1.0f), transate1);
-        mvp = proj * view * model;
-        shader.Bind();
-        shader.SetUniformMat4f("u_MVP", mvp);
-        render.Draw(va, ib, shader);
+
+        if (currentTest)
         {
-            ImGui::Begin("Slider");
-            ImGui::SliderFloat3("Trans1", &transate.x, 0.0f, 960.0f);
-            ImGui::SliderFloat3("Trans2", &transate1.x, 0.0f, 960.0f);
+            currentTest->OnUpdate(0.0f);
+            currentTest->OnRender();
+            ImGui::Begin("Tests");
+            if (currentTest != TestMenu && ImGui::Button("<-"))
+            {
+                delete currentTest;
+                currentTest = TestMenu;
+            }
+            currentTest->OnImguiRender();
             ImGui::End();
         }
+
         ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -159,10 +118,11 @@ int main()
             ImGui::RenderPlatformWindowsDefault();
             glfwMakeContextCurrent(backup_current_context);
         }
-        /* Swap front and back buffers */
         glfwSwapBuffers(window);
     }
-
+    delete currentTest;
+    if (currentTest != TestMenu)
+        delete TestMenu;
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();

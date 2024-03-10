@@ -13,6 +13,7 @@
     "limits": "cpp",
     "ostream": "cpp",
     "sstream": "cpp",
-    "algorithm": "cpp"
+    "algorithm": "cpp",
+    "new": "cpp"
   }
 }

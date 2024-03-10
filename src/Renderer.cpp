@@ -1,6 +1,7 @@
 #include <Renderer.hpp>
 void Renderer::Clear() const
 {
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 void Renderer::Draw(const VertexArray &va, const IndexBuffer &ib, const Shader &shader) const
